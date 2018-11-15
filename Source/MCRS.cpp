@@ -1,13 +1,13 @@
 #include "MCRS.h"
-#include "MCRMaths.h"
+#include "MCRSMaths.h"
 
 MCRSOutput MCRS::getSimValue(BWAPI::Unit u, double simTime) {
-	if (!u->exists() || u->getPlayer() != BWAPI::Broodwar->self())
-		return;
-
-	MCRSUnit &unit = myUnits[u];
 	MCRSOutput newOutput;
 
+	if (!u->exists() || u->getPlayer() != BWAPI::Broodwar->self())
+		return newOutput;
+
+	MCRSUnit &unit = myUnits[u];
 	double unitToEngage = std::max(0.0, unit.getPosition().getDistance(unit.getEngagePosition()) / (24.0 * unit.getSpeed()));
 	simulationTime = unitToEngage + simTime;
 	simulate(newOutput, unit);

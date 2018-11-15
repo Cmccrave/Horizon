@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Source\MCRMaths.h">
+    <ClInclude Include="..\Source\MCRS.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\MCRS.h">
+    <ClInclude Include="..\Source\MCRSMaths.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

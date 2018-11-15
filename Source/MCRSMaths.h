@@ -1,5 +1,6 @@
 #pragma once
-#include "MCRS.h"
+
+class MCRSUnit;
 
 namespace MCRMath {
 
