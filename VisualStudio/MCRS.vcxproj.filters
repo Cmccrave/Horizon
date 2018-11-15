@@ -18,12 +18,12 @@
     <ClInclude Include="..\Source\MCRMaths.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\MCRSim.h">
+    <ClInclude Include="..\Source\MCRS.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\MCRSim.cpp">
+    <ClCompile Include="..\Source\MCRS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

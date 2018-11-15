@@ -1,31 +1,26 @@
-#include "MCRSim.h"
+#include "MCRS.h"
 #include "MCRMaths.h"
 
-MCRSimOutput MCRSim::getSimValue(BWAPI::Unit u, double simTime) {
-	MCRUnit &unit = myUnits[u];
-	MCRSimOutput newOutput;
+MCRSOutput MCRS::getSimValue(BWAPI::Unit u, double simTime) {
+	if (!u->exists() || u->getPlayer() != BWAPI::Broodwar->self())
+		return;
+
+	MCRSUnit &unit = myUnits[u];
+	MCRSOutput newOutput;
 
 	double unitToEngage = std::max(0.0, unit.getPosition().getDistance(unit.getEngagePosition()) / (24.0 * unit.getSpeed()));
 	simulationTime = unitToEngage + simTime;
-	bool sync = false;
-
-	MCRInternalSimValue mySim = getMySim(unit, sync);
-	MCRInternalSimValue enemySim = getEnemySim(unit);
-
-	newOutput.attackAirAsAir = enemySim.air > 0.0 ? mySim.air / enemySim.air : DBL_MAX;
-	newOutput.attackAirAsGround = enemySim.grd > 0.0 ? mySim.air / enemySim.grd : DBL_MAX;
-	newOutput.attackGroundAsAir = enemySim.air > 0.0 ? mySim.grd / enemySim.air : DBL_MAX;
-	newOutput.attackGroundasGround = enemySim.grd > 0.0 ? mySim.grd / enemySim.grd : DBL_MAX;
-
+	simulate(newOutput, unit);
 	return newOutput;
 }
 
-MCRInternalSimValue& MCRSim::getEnemySim(MCRUnit unit) {
+void MCRS::simulate(MCRSOutput& newOutput, MCRSUnit& unit) {
 
 	double enemyGrdSim;
 	double enemyAirSim;
+	double myGrdSim;
+	double myAirSim;
 	double unitSpeed = unit.getSpeed() * 24.0;
-	MCRInternalSimValue thisSim;
 
 	// Check every enemy unit being in range of the target
 	for (auto &e : enemyUnits) {
@@ -70,17 +65,6 @@ MCRInternalSimValue& MCRSim::getEnemySim(MCRUnit unit) {
 		enemyAirSim += enemy.getVisibleAirStrength() * simRatio;
 	}
 
-	thisSim.grd = enemyGrdSim;
-	thisSim.air = enemyAirSim;
-	return thisSim;
-}
-
-MCRInternalSimValue& MCRSim::getMySim(MCRUnit unit, bool& sync) {
-
-	double myGrdSim;
-	double myAirSim;
-	MCRInternalSimValue thisSim;
-
 	// Check every ally being in range of the target
 	for (auto &a : myUnits) {
 		auto &ally = a.second;
@@ -107,29 +91,36 @@ MCRInternalSimValue& MCRSim::getMySim(MCRUnit unit, bool& sync) {
 			simRatio = simRatio * 2.0;
 
 		// Synchronize check
-		if (!sync && simRatio > 0.0 && ((unit.getType().isFlyer() && !ally.getType().isFlyer()) || (!unit.getType().isFlyer() && ally.getType().isFlyer())))
-			sync = true;
+		if (!newOutput.shouldSynch && simRatio > 0.0 && ((unit.getType().isFlyer() && !ally.getType().isFlyer()) || (!unit.getType().isFlyer() && ally.getType().isFlyer())))
+			newOutput.shouldSynch = true;
 
 		myGrdSim += ally.getVisibleGroundStrength() * simRatio;
 		myAirSim += ally.getVisibleAirStrength() * simRatio;
 	}
 
-	thisSim.air = myAirSim;
-	thisSim.grd = myGrdSim;
-	return thisSim;
+	newOutput.attackAirAsAir = enemyAirSim > 0.0 ? myAirSim / enemyAirSim : DBL_MAX;
+	newOutput.attackAirAsGround = enemyGrdSim > 0.0 ? myAirSim / enemyGrdSim : DBL_MAX;
+	newOutput.attackGroundAsAir = enemyAirSim > 0.0 ? myGrdSim / enemyAirSim : DBL_MAX;
+	newOutput.attackGroundasGround = enemyGrdSim > 0.0 ? myGrdSim / enemyGrdSim : DBL_MAX;
 }
 
-void MCRSim::myMCRUnit(BWAPI::Unit unit, BWAPI::Unit target) {
-	myUnits[unit].update(unit);
-	myUnits[unit].setTarget(&enemyUnits[target]);
-	myUnits[unit].setEngagePosition(MCRMath::engagePosition(myUnits[unit]));
+void MCRS::updateUnit(BWAPI::Unit unit, BWAPI::Unit target) {
+
+	if (!unit || !unit->exists())
+		return;
+	
+	auto &u = unit->getPlayer() == BWAPI::Broodwar->self() ? myUnits[unit] : enemyUnits[unit];
+	u.update(unit);
+	u.setTarget(&enemyUnits[target]);
+	u.setEngagePosition(MCRMath::engagePosition(myUnits[unit]));
 }
 
-void MCRSim::enemyMCRUnit(BWAPI::Unit unit) {
-	enemyUnits[unit].update(unit);
+void MCRS::removeUnit(BWAPI::Unit unit)
+{
+	unit->getPlayer() == BWAPI::Broodwar->self() ? myUnits.erase(unit) : enemyUnits.erase(unit);
 }
 
-void MCRUnit::update(BWAPI::Unit unit, BWAPI::Unit target) {
+void MCRSUnit::update(BWAPI::Unit unit, BWAPI::Unit target) {
 	auto t = unit->getType();
 	auto p = unit->getPlayer();
 
@@ -151,13 +142,13 @@ void MCRUnit::update(BWAPI::Unit unit, BWAPI::Unit target) {
 	visAirStrength = MCRMath::visAirStrength(*this);
 }
 
-MCRUnit::MCRUnit() {}
+MCRSUnit::MCRSUnit() {}
 
-MCRSim* MCRSim::sim = nullptr;
+MCRS* MCRS::sim = nullptr;
 
-MCRSim & MCRSim::Instance()
+MCRS & MCRS::Instance()
 {
 	if (!sim)
-		sim = new MCRSim();
+		sim = new MCRS();
 	return *sim;
 }

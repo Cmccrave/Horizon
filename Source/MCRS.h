@@ -1,12 +1,7 @@
 #pragma once
 #include <BWAPI.h>
 
-struct MCRInternalSimValue {
-	double grd = 0.0;
-	double air = 0.0;
-};
-
-struct MCRSimOutput {
+struct MCRSOutput {
 	double attackAirAsAir = 0.0;
 	double attackAirAsGround = 0.0;
 	double attackGroundAsAir = 0.0;
@@ -14,9 +9,9 @@ struct MCRSimOutput {
 	bool shouldSynch = false;
 };
 
-class MCRUnit {
+class MCRSUnit {
 
-	MCRUnit* unitsTarget;
+	MCRSUnit* unitsTarget;
 
 	double percentHealth, groundRange, airRange, groundDamage, airDamage, speed;						// StarCraft stats
 	double visGroundStrength, visAirStrength, maxGroundStrength, maxAirStrength;				// McRave stats
@@ -28,12 +23,12 @@ class MCRUnit {
 	BWAPI::Position position, engagePosition;
 	BWAPI::TilePosition tilePosition;
 public:
-	MCRUnit();
+	MCRSUnit();
 	void update(BWAPI::Unit unit, BWAPI::Unit target = nullptr);
 	bool hasTarget()						{ return unitsTarget != nullptr; }
-	MCRUnit &getTarget()					{ return *unitsTarget; }
+	MCRSUnit &getTarget()					{ return *unitsTarget; }
 
-	void setTarget(MCRUnit* target)			{ unitsTarget = target; }
+	void setTarget(MCRSUnit* target)			{ unitsTarget = target; }
 
 	void setEngagePosition(BWAPI::Position position) {
 		engagePosition = position; }
@@ -59,32 +54,29 @@ public:
 	int getEnergy()							{ return energy; }
 };
 
-class MCRSim{
+class MCRS {
 
 private:
 	// Variables for calculating local strengths
 	double simulationTime;
-	bool sync;
-	static MCRSim* sim;
+	static MCRS* sim;
 
-	std::map<BWAPI::Unit, MCRUnit> enemyUnits;
-	std::map<BWAPI::Unit, MCRUnit> myUnits;
-
-	MCRInternalSimValue& getEnemySim(MCRUnit);
-	MCRInternalSimValue& getMySim(MCRUnit, bool&);
+	std::map<BWAPI::Unit, MCRSUnit> enemyUnits;
+	std::map<BWAPI::Unit, MCRSUnit> myUnits;
+	void simulate(MCRSOutput&, MCRSUnit&);
 
 public:
 		
 	// Returns a simulation for ground and air and a boolean of whether it is suggested you synchronize the simulations.
-	MCRSimOutput getSimValue(BWAPI::Unit, double);
+	MCRSOutput getSimValue(BWAPI::Unit, double);
 
-	// Call this every frame on every unit you have, you must supply a target for the sim.
-	void myMCRUnit(BWAPI::Unit, BWAPI::Unit);
-	
-	// Call this every frame on every enemy unit, no target needed.
-	void enemyMCRUnit(BWAPI::Unit);
+	// Call this every frame on every unit you have, you must supply a target for the sim if it's your own unit.
+	void updateUnit(BWAPI::Unit, BWAPI::Unit = nullptr);
 
-	static MCRSim &Instance();
+	// Remove any units as they die
+	void removeUnit(BWAPI::Unit);
+
+	static MCRS &Instance();
 };
 
 
