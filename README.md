@@ -1,2 +1,2 @@
-# MCRSim
-Will be posting my individual unit combat simulation after AIIDE for public use.
+# MCRS
+Will update later with how to use it.
