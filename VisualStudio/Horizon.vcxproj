@@ -18,6 +18,13 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\Horizon.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Horizon.h" />
+    <ClInclude Include="..\Source\Maths.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{C52A4339-996D-43FF-964D-79D0DAF35245}</ProjectGuid>
@@ -117,13 +124,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\Source\MCRSMaths.h" />
-    <ClInclude Include="..\Source\MCRS.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\Source\MCRS.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,10 +1,10 @@
 #pragma once
 
-class MCRSUnit;
+class HorizonUnit;
 
-namespace MCRMath {
+namespace Horizon::Maths {
 
-	double survivability(MCRSUnit unit) {
+	double survivability(HorizonUnit& unit) {
 		double speed, armor, health;
 		speed = (unit.getType().isBuilding()) ? 0.5 : std::max(1.0, log(unit.getSpeed()));
 		armor = 2.0 + double(unit.getType().armor() + unit.getPlayer()->getUpgradeLevel(unit.getType().armorUpgrade()));
@@ -12,7 +12,7 @@ namespace MCRMath {
 		return speed * armor * health;
 	}
 
-	double splashModifier(MCRSUnit unit) {
+	double splashModifier(HorizonUnit& unit) {
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Archon || unit.getType() == BWAPI::UnitTypes::Terran_Firebat) return 1.25;
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Reaver) return 1.25;
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 6.00;
@@ -22,7 +22,7 @@ namespace MCRMath {
 		return 1.00;
 	}
 
-	double groundDamage(MCRSUnit unit) {
+	double groundDamage(HorizonUnit& unit) {
 		int upLevel = unit.getPlayer()->getUpgradeLevel(unit.getType().groundWeapon().upgradeType());
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Reaver) {
 			if (unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Scarab_Damage)) return 125.00;
@@ -34,7 +34,7 @@ namespace MCRMath {
 		return unit.getType().groundWeapon().damageAmount() + (unit.getType().groundWeapon().damageBonus() * upLevel);
 	}
 
-	double groundRange(MCRSUnit unit) {
+	double groundRange(HorizonUnit& unit) {
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Dragoon && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Singularity_Charge)) return 192.0;
 		if ((unit.getType() == BWAPI::UnitTypes::Terran_Marine && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::U_238_Shells)) || (unit.getType() == BWAPI::UnitTypes::Zerg_Hydralisk && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines))) return 160.0;
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 288.0;
@@ -46,7 +46,7 @@ namespace MCRMath {
 		return double(unit.getType().groundWeapon().maxRange());
 	}
 
-	double gWeaponCooldown(MCRSUnit unit) {
+	double gWeaponCooldown(HorizonUnit& unit) {
 		if (unit.getType() == BWAPI::UnitTypes::Terran_Bunker) return 15.0;
 		else if (unit.getType() == BWAPI::UnitTypes::Protoss_Reaver) return 60.0;
 		else if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 224.0;
@@ -55,7 +55,7 @@ namespace MCRMath {
 		return unit.getType().groundWeapon().damageCooldown();
 	}
 
-	double groundDPS(MCRSUnit unit) {
+	double groundDPS(HorizonUnit& unit) {
 		double splash, damage, range, cooldown;
 		splash = splashModifier(unit);
 		damage = unit.getGroundDamage();
@@ -66,13 +66,13 @@ namespace MCRMath {
 		return splash * damage * range / cooldown;
 	}
 
-	double visGroundStrength(MCRSUnit unit) {
+	double visGroundStrength(HorizonUnit& unit) {
 		if (unit.unit()->isMaelstrommed() || unit.unit()->isStasised())
 			return 0.0;
 		return unit.getPercentHealth() * unit.getMaxGroundStrength();
 	}
 
-	double maxGroundStrength(MCRSUnit unit) {
+	double maxGroundStrength(HorizonUnit& unit) {
 		// HACK: Some hardcoded values
 		if (unit.getType() == BWAPI::UnitTypes::Terran_Medic)
 			return 5.0;
@@ -97,7 +97,7 @@ namespace MCRMath {
 		return dps * surv /** eff*/;
 	}
 
-	double airDamage(MCRSUnit unit) {
+	double airDamage(HorizonUnit& unit) {
 		int upLevel = unit.getPlayer()->getUpgradeLevel(unit.getType().airWeapon().upgradeType());
 		if (unit.getType() == BWAPI::UnitTypes::Terran_Bunker)	return 24.0 + (4.0 * upLevel);
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Scout)	return 28.0 + (2.0 * upLevel);
@@ -106,7 +106,7 @@ namespace MCRMath {
 		return unit.getType().airWeapon().damageAmount() + (unit.getType().airWeapon().damageBonus() * upLevel);
 	}
 
-	double airRange(MCRSUnit unit) {
+	double airRange(HorizonUnit& unit) {
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Dragoon && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Singularity_Charge)) return 192.0;
 		if ((unit.getType() == BWAPI::UnitTypes::Terran_Marine && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::U_238_Shells)) || (unit.getType() == BWAPI::UnitTypes::Zerg_Hydralisk && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines))) return 160.0;
 		if (unit.getType() == BWAPI::UnitTypes::Terran_Goliath && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Charon_Boosters)) return 256.0;
@@ -118,7 +118,7 @@ namespace MCRMath {
 		return double(unit.getType().airWeapon().maxRange());
 	}
 
-	double aWeaponCooldown(MCRSUnit unit)
+	double aWeaponCooldown(HorizonUnit& unit)
 	{
 		if (unit.getType() == BWAPI::UnitTypes::Terran_Bunker) return 15.0;
 		else if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 224.0;
@@ -128,7 +128,7 @@ namespace MCRMath {
 		return unit.getType().airWeapon().damageCooldown();
 	}
 
-	double airDPS(MCRSUnit unit) {
+	double airDPS(HorizonUnit& unit) {
 		double splash, damage, range, cooldown;
 		splash = splashModifier(unit);
 		damage = unit.getAirDamage();
@@ -139,13 +139,13 @@ namespace MCRMath {
 		return splash * damage * range / cooldown;
 	}
 
-	double visAirStrength(MCRSUnit unit) {
+	double visAirStrength(HorizonUnit& unit) {
 		if (unit.unit()->isMaelstrommed() || unit.unit()->isStasised())
 			return 0.0;
 		return unit.getPercentHealth() * unit.getMaxAirStrength();
 	}
 
-	double maxAirStrength(MCRSUnit unit) {
+	double maxAirStrength(HorizonUnit& unit) {
 		if (unit.getType() == BWAPI::UnitTypes::Protoss_Scarab || unit.getType() == BWAPI::UnitTypes::Terran_Vulture_Spider_Mine || unit.getType() == BWAPI::UnitTypes::Zerg_Egg || unit.getType() == BWAPI::UnitTypes::Zerg_Larva || unit.getAirRange() <= 0.0)
 			return 0.0;
 		else if (unit.getType() == BWAPI::UnitTypes::Protoss_Interceptor)
@@ -167,7 +167,7 @@ namespace MCRMath {
 		return dps * surv /** eff*/;
 	}
 	
-	double speed(MCRSUnit unit) {
+	double speed(HorizonUnit& unit) {
 		double speed = unit.getType().topSpeed();
 
 		if ((unit.getType() == BWAPI::UnitTypes::Zerg_Zergling && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Metabolic_Boost)) || (unit.getType() == BWAPI::UnitTypes::Zerg_Hydralisk && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments)) || (unit.getType() == BWAPI::UnitTypes::Zerg_Ultralisk && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Anabolic_Synthesis)) || (unit.getType() == BWAPI::UnitTypes::Protoss_Shuttle && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Gravitic_Drive)) || (unit.getType() == BWAPI::UnitTypes::Protoss_Observer && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Gravitic_Boosters)) || (unit.getType() == BWAPI::UnitTypes::Protoss_Zealot && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Leg_Enhancements)) || (unit.getType() == BWAPI::UnitTypes::Terran_Vulture && unit.getPlayer()->getUpgradeLevel(BWAPI::UpgradeTypes::Ion_Thrusters)))
@@ -178,11 +178,11 @@ namespace MCRMath {
 		return speed;
 	}
 
-	double percentHealth(MCRSUnit unit) {
+	double percentHealth(HorizonUnit& unit) {
 		return double(unit.unit()->getHitPoints() + (unit.unit()->getShields() / 2)) / double(unit.getType().maxHitPoints() + (unit.getType().maxShields() / 2));
 	}
 
-	BWAPI::Position engagePosition(MCRSUnit unit) {
+	BWAPI::Position engagePosition(HorizonUnit& unit) {
 		if (!unit.hasTarget())
 			return BWAPI::Positions::None;
 

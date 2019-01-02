@@ -1,5 +1,5 @@
 
-VisualStudio/.vs/MCRS/v15/.suo
+VisualStudio/.vs/Horizon/v15/.suo
 *.db
 *.ipch
 *.tlog
@@ -7,3 +7,4 @@ VisualStudio/.vs/MCRS/v15/.suo
 *.pdb
 *.user
 *.log
+*.opendb
