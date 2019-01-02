@@ -4,17 +4,17 @@
 namespace Horizon {
 
     namespace {
-        double simulationTime;
+        float simulationTime;
         std::map<BWAPI::Unit, HorizonUnit> enemyUnits;
         std::map<BWAPI::Unit, HorizonUnit> myUnits;
         
         void simulate(HorizonOutput& newOutput, HorizonUnit& unit) {
 
-            double enemyGrdSim;
-            double enemyAirSim;
-            double myGrdSim;
-            double myAirSim;
-            double unitSpeed = unit.getSpeed() * 24.0;
+            float enemyGrdSim;
+            float enemyAirSim;
+            float myGrdSim;
+            float myAirSim;
+            float unitSpeed = unit.getSpeed() * 24.0f;
 
             // Check every enemy unit being in range of the target
             for (auto &e : enemyUnits) {
@@ -25,35 +25,35 @@ namespace Horizon {
                     continue;
 
                 // Distance parameters
-                double widths = (double)enemy.getType().tileWidth() * 16.0 + (double)unit.getType().tileWidth() * 16.0;
-                double enemyRange = (unit.getType().isFlyer() ? enemy.getAirRange() : enemy.getGroundRange());
-                double airDist = enemy.getPosition().getDistance(unit.getPosition());
+                float widths = (float)enemy.getType().tileWidth() * 16.0f + (float)unit.getType().tileWidth() * 16.0f;
+                float enemyRange = (unit.getType().isFlyer() ? enemy.getAirRange() : enemy.getGroundRange());
+                float airDist = float(enemy.getPosition().getDistance(unit.getPosition()));
 
                 // True distance
-                double distance = airDist - enemyRange - widths;
+                float distance = airDist - enemyRange - widths;
 
                 // Sim values
-                double enemyToEngage = 0.0;
-                double simRatio = 0.0;
-                double speed = enemy.getSpeed() * 24.0;
+                float enemyToEngage = 0.0f;
+                float simRatio = 0.0f;
+                float speed = enemy.getSpeed() * 24.0f;
 
                 // If enemy can move, distance/speed is time to engage
-                if (speed > 0.0) {
-                    enemyToEngage = std::max(0.0, distance / speed);
-                    simRatio = std::max(0.0, simulationTime - enemyToEngage);
+                if (speed > 0.0f) {
+                    enemyToEngage = std::max(0.0f, distance / speed);
+                    simRatio = std::max(0.0f, simulationTime - enemyToEngage);
                 }
 
                 // If enemy can't move, it must be in range of our engage position to be added
                 else if (enemy.getPosition().getDistance(unit.getEngagePosition()) - enemyRange - widths <= 0.0) {
-                    enemyToEngage = std::max(0.0, distance / unitSpeed);
-                    simRatio = std::max(0.0, simulationTime - enemyToEngage);
+                    enemyToEngage = std::max(0.0f, distance / unitSpeed);
+                    simRatio = std::max(0.0f, simulationTime - enemyToEngage);
                 }
                 else
                     continue;
 
                 // High ground check
                 if (!enemy.getType().isFlyer() && BWAPI::Broodwar->getGroundHeight(enemy.getTilePosition()) > BWAPI::Broodwar->getGroundHeight(BWAPI::TilePosition(unit.getEngagePosition())))
-                    simRatio = simRatio * 2.0;
+                    simRatio = simRatio * 2.0f;
 
                 enemyGrdSim += enemy.getVisibleGroundStrength() * simRatio;
                 enemyAirSim += enemy.getVisibleAirStrength() * simRatio;
@@ -67,22 +67,22 @@ namespace Horizon {
                     continue;
 
                 // Setup distance values
-                double dist = ally.getPosition().getDistance(ally.getEngagePosition());
-                double widths = (double)ally.getType().tileWidth() * 16.0 + (double)unit.getType().tileWidth() * 16.0;
-                double speed = 24.0 * ally.getSpeed();
+                float dist = float(ally.getPosition().getDistance(ally.getEngagePosition()));
+                float widths = (float)ally.getType().tileWidth() * 16.0f + (float)unit.getType().tileWidth() * 16.0f;
+                float speed = 24.0f * ally.getSpeed();
 
                 // Setup true distance
-                double distance = dist - widths;
+                float distance = dist - widths;
 
                 if (ally.getPosition().getDistance(unit.getEngagePosition()) / speed > simulationTime)
                     continue;
 
-                double allyToEngage = std::max(0.0, (distance / speed));
-                double simRatio = std::max(0.0, simulationTime - allyToEngage);
+                float allyToEngage = std::max(0.0f, (distance / speed));
+                float simRatio = std::max(0.0f, simulationTime - allyToEngage);
 
                 // High ground check
                 if (!ally.getType().isFlyer() && BWAPI::Broodwar->getGroundHeight(BWAPI::TilePosition(ally.getEngagePosition())) > BWAPI::Broodwar->getGroundHeight(BWAPI::TilePosition(ally.getTarget().getPosition())))
-                    simRatio = simRatio * 2.0;
+                    simRatio = simRatio * 2.0f;
 
                 // Synchronize check
                 if (!newOutput.shouldSynch && simRatio > 0.0 && ((unit.getType().isFlyer() && !ally.getType().isFlyer()) || (!unit.getType().isFlyer() && ally.getType().isFlyer())))
@@ -92,21 +92,21 @@ namespace Horizon {
                 myAirSim += ally.getVisibleAirStrength() * simRatio;
             }
 
-            newOutput.attackAirAsAir = enemyAirSim > 0.0 ? myAirSim / enemyAirSim : DBL_MAX;
-            newOutput.attackAirAsGround = enemyGrdSim > 0.0 ? myAirSim / enemyGrdSim : DBL_MAX;
-            newOutput.attackGroundAsAir = enemyAirSim > 0.0 ? myGrdSim / enemyAirSim : DBL_MAX;
-            newOutput.attackGroundasGround = enemyGrdSim > 0.0 ? myGrdSim / enemyGrdSim : DBL_MAX;
+            newOutput.attackAirAsAir = enemyAirSim > 0.0f ? myAirSim / enemyAirSim : FLT_MAX;
+            newOutput.attackAirAsGround = enemyGrdSim > 0.0f ? myAirSim / enemyGrdSim : FLT_MAX;
+            newOutput.attackGroundAsAir = enemyAirSim > 0.0f ? myGrdSim / enemyAirSim : FLT_MAX;
+            newOutput.attackGroundasGround = enemyGrdSim > 0.0f ? myGrdSim / enemyGrdSim : FLT_MAX;
         }
     }
 
-    HorizonOutput getSimValue(BWAPI::Unit u, double simTime) {
+    HorizonOutput getSimValue(BWAPI::Unit u, float simTime) {
         HorizonOutput newOutput;
 
         if (!u->exists() || u->getPlayer() != BWAPI::Broodwar->self())
             return newOutput;
 
         HorizonUnit &unit = myUnits[u];
-        double unitToEngage = std::max(0.0, unit.getPosition().getDistance(unit.getEngagePosition()) / (24.0 * unit.getSpeed()));
+        float unitToEngage = float(std::max(0.0, unit.getPosition().getDistance(unit.getEngagePosition()) / (24.0 * unit.getSpeed())));
         simulationTime = unitToEngage + simTime;
         simulate(newOutput, unit);
         return newOutput;

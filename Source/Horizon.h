@@ -4,10 +4,10 @@
 namespace Horizon {
 
     struct HorizonOutput {
-        double attackAirAsAir       = 0.0;
-        double attackAirAsGround    = 0.0;
-        double attackGroundAsAir    = 0.0;
-        double attackGroundasGround = 0.0;
+        float attackAirAsAir       = 0.0;
+        float attackAirAsGround    = 0.0;
+        float attackGroundAsAir    = 0.0;
+        float attackGroundasGround = 0.0;
         bool shouldSynch            = false;
     };
 
@@ -52,21 +52,21 @@ namespace Horizon {
         BWAPI::Position getEngagePosition()     { return engagePosition; }
         BWAPI::TilePosition getTilePosition()   { return tilePosition; }
 
-        double getPercentHealth()               { return percentHealth; }
-        double getVisibleGroundStrength()       { return visGroundStrength; }
-        double getMaxGroundStrength()           { return maxGroundStrength; }
-        double getVisibleAirStrength()          { return visAirStrength; }
-        double getMaxAirStrength()              { return maxAirStrength; }
-        double getGroundRange()                 { return groundRange; }
-        double getAirRange()                    { return airRange; }
-        double getGroundDamage()                { return groundDamage; }	
-        double getAirDamage()                   { return airDamage; }
-        double getSpeed()                       { return speed; }
+        float getPercentHealth()               { return percentHealth; }
+        float getVisibleGroundStrength()       { return visGroundStrength; }
+        float getMaxGroundStrength()           { return maxGroundStrength; }
+        float getVisibleAirStrength()          { return visAirStrength; }
+        float getMaxAirStrength()              { return maxAirStrength; }
+        float getGroundRange()                 { return groundRange; }
+        float getAirRange()                    { return airRange; }
+        float getGroundDamage()                { return groundDamage; }
+        float getAirDamage()                   { return airDamage; }
+        float getSpeed()                       { return speed; }
         int getEnergy()                         { return energy; }
     };
 
     /// Runs a simulation for this Unit and percent change of winning.    
-    HorizonOutput getSimValue(BWAPI::Unit, double);
+    HorizonOutput getSimValue(BWAPI::Unit, float);
 
     /// Adds a Unit to Horizon.
     void updateUnit(BWAPI::Unit, BWAPI::Unit = nullptr);
