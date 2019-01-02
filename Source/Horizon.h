@@ -4,67 +4,75 @@
 namespace Horizon {
 
     struct HorizonOutput {
-        double attackAirAsAir = 0.0;
-        double attackAirAsGround = 0.0;
-        double attackGroundAsAir = 0.0;
+        double attackAirAsAir       = 0.0;
+        double attackAirAsGround    = 0.0;
+        double attackGroundAsAir    = 0.0;
         double attackGroundasGround = 0.0;
-        bool shouldSynch = false;
+        bool shouldSynch            = false;
     };
 
     class HorizonUnit {
 
         HorizonUnit* unitsTarget;
 
-        double percentHealth, groundRange, airRange, groundDamage, airDamage, speed;	// StarCraft stats
-        double visGroundStrength, visAirStrength, maxGroundStrength, maxAirStrength;	// Horizon stats
-        int shields, health, energy;
+        float percentHealth     = 0.0f;
+        float groundRange       = 0.0f;
+        float airRange          = 0.0f;
+        float groundDamage      = 0.0f;
+        float airDamage         = 0.0f;
+        float speed             = 0.0f;
+        float visGroundStrength = 0.0f; 
+        float visAirStrength    = 0.0f;
+        float maxGroundStrength = 0.0f;
+        float maxAirStrength    = 0.0f;
+        int shields             = 0;
+        int health              = 0;
+        int energy              = 0;
 
-        BWAPI::Unit thisUnit;
-        BWAPI::UnitType type;
-        BWAPI::Player player;
-        BWAPI::Position position, engagePosition;
-        BWAPI::TilePosition tilePosition;
+        BWAPI::Unit thisUnit             = nullptr;
+        BWAPI::UnitType type             = BWAPI::UnitTypes::None;
+        BWAPI::Player player             = nullptr;
+        BWAPI::Position position         = BWAPI::Positions::None;
+        BWAPI::Position engagePosition   = BWAPI::Positions::None;
+        BWAPI::TilePosition tilePosition = BWAPI::TilePositions::None;
     public:
-        HorizonUnit();
+        HorizonUnit() { };
         void update(BWAPI::Unit unit, BWAPI::Unit target = nullptr);
-        bool hasTarget() { return unitsTarget != nullptr; }
-        HorizonUnit &getTarget() { return *unitsTarget; }
 
-        void setTarget(HorizonUnit* target) { unitsTarget = target; }
+        bool hasTarget()                        { return unitsTarget != nullptr; }
+        HorizonUnit &getTarget()                { return *unitsTarget; }
 
-        void setEngagePosition(BWAPI::Position position) {
-            engagePosition = position;
-        }
+        void setTarget(HorizonUnit* t)          { unitsTarget = t; }
+        void setEngage(BWAPI::Position p)       { engagePosition = p; }
 
-        BWAPI::Unit unit() { return thisUnit; }
-        BWAPI::UnitType getType() { return type; }
-        BWAPI::Player getPlayer() { return player; }
-        BWAPI::Position getPosition() { return position; }
-        BWAPI::Position getEngagePosition() { return engagePosition; }
-        BWAPI::TilePosition getTilePosition() { return tilePosition; }
+        BWAPI::Unit unit()                      { return thisUnit; }
+        BWAPI::UnitType getType()               { return type; }
+        BWAPI::Player getPlayer()               { return player; }
+        BWAPI::Position getPosition()           { return position; }
+        BWAPI::Position getEngagePosition()     { return engagePosition; }
+        BWAPI::TilePosition getTilePosition()   { return tilePosition; }
 
-        // Starcraft Stats
-        double getPercentHealth() { return percentHealth; }				// Returns the units health and shield percentage		
-        double getVisibleGroundStrength() { return visGroundStrength; }			// Returns the units visible ground strength		
-        double getMaxGroundStrength() { return maxGroundStrength; }			// Returns the units max ground strength		
-        double getVisibleAirStrength() { return visAirStrength; }				// Returns the units visible air strength		
-        double getMaxAirStrength() { return maxAirStrength; }				// Returns the units max air strength
-        double getGroundRange() { return groundRange; }					// Returns the units ground range including upgrades		
-        double getAirRange() { return airRange; }					// Returns the units air range including upgrades				
-        double getGroundDamage() { return groundDamage; }				// Returns the units ground damage (including most upgrades)		
-        double getAirDamage() { return airDamage; }					// Returns the units air damage (including most upgrades)		
-        double getSpeed() { return speed; }						// Returns the units movement speed in pixels per frame including upgrades
-        int getEnergy() { return energy; }
+        double getPercentHealth()               { return percentHealth; }
+        double getVisibleGroundStrength()       { return visGroundStrength; }
+        double getMaxGroundStrength()           { return maxGroundStrength; }
+        double getVisibleAirStrength()          { return visAirStrength; }
+        double getMaxAirStrength()              { return maxAirStrength; }
+        double getGroundRange()                 { return groundRange; }
+        double getAirRange()                    { return airRange; }
+        double getGroundDamage()                { return groundDamage; }	
+        double getAirDamage()                   { return airDamage; }
+        double getSpeed()                       { return speed; }
+        int getEnergy()                         { return energy; }
     };
-    		
-	// Returns a simulation for ground and air and a boolean of whether it is suggested you synchronize the simulations.
-	HorizonOutput getSimValue(BWAPI::Unit, double);
 
-	// Call this every frame on every unit you have, you must supply a target for the sim if it's your own unit.
-	void updateUnit(BWAPI::Unit, BWAPI::Unit = nullptr);
+    /// Runs a simulation for this Unit and percent change of winning.    
+    HorizonOutput getSimValue(BWAPI::Unit, double);
 
-	// Remove any units as they die
-	void removeUnit(BWAPI::Unit);
+    /// Adds a Unit to Horizon.
+    void updateUnit(BWAPI::Unit, BWAPI::Unit = nullptr);
+
+    /// Removes the Unit from Horizon.
+    void removeUnit(BWAPI::Unit);
 };
 
 

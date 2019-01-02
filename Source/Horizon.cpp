@@ -7,7 +7,7 @@ namespace Horizon {
         double simulationTime;
         std::map<BWAPI::Unit, HorizonUnit> enemyUnits;
         std::map<BWAPI::Unit, HorizonUnit> myUnits;
-
+        
         void simulate(HorizonOutput& newOutput, HorizonUnit& unit) {
 
             double enemyGrdSim;
@@ -99,7 +99,7 @@ namespace Horizon {
         }
     }
 
-    HorizonOutput Horizon::getSimValue(BWAPI::Unit u, double simTime) {
+    HorizonOutput getSimValue(BWAPI::Unit u, double simTime) {
         HorizonOutput newOutput;
 
         if (!u->exists() || u->getPlayer() != BWAPI::Broodwar->self())
@@ -111,21 +111,23 @@ namespace Horizon {
         simulate(newOutput, unit);
         return newOutput;
     }
-    
+
     void updateUnit(BWAPI::Unit unit, BWAPI::Unit target) {
 
         if (!unit || !unit->exists())
             return;
 
         auto &u = unit->getPlayer() == BWAPI::Broodwar->self() ? myUnits[unit] : enemyUnits[unit];
-        u.update(unit);
+        Maths::adjustSizes(unit);
+        u.update(unit, target);
         u.setTarget(&enemyUnits[target]);
-        u.setEngagePosition(Maths::engagePosition(myUnits[unit]));
+        u.setEngage(Maths::engagePosition(myUnits[unit]));
     }
 
     void removeUnit(BWAPI::Unit unit)
     {
         unit->getPlayer() == BWAPI::Broodwar->self() ? myUnits.erase(unit) : enemyUnits.erase(unit);
+        Maths::adjustSizes(unit);
     }
 
     void HorizonUnit::update(BWAPI::Unit unit, BWAPI::Unit target) {
@@ -133,6 +135,13 @@ namespace Horizon {
         auto p = unit->getPlayer();
 
         unitsTarget = nullptr;
+        if (target) {
+            if (myUnits.find(target) != myUnits.end())
+                unitsTarget = &myUnits[target];
+            else if (enemyUnits.find(target) != enemyUnits.end())
+                unitsTarget = &enemyUnits[target];
+        }
+
         thisUnit = unit;
         type = t;
         player = p;
