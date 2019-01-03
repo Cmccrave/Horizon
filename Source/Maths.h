@@ -210,15 +210,16 @@ namespace Horizon::Maths {
 
     BWAPI::Position engagePosition(HorizonUnit& unit) {
         if (!unit.hasTarget())
-            return BWAPI::Positions::None;
+            return BWAPI::Positions::None;        
 
-        float distance = float(unit.getPosition().getDistance(unit.getTarget().getPosition()));
-        float range = unit.getTarget().getType().isFlyer() ? unit.getAirRange() : unit.getGroundRange();
-        float leftover = distance - range;
+        int distance = (int)unit.getPosition().getDistance(unit.getTarget().getPosition());
+        int range = unit.getTarget().getType().isFlyer() ? (int)unit.getAirRange() : (int)unit.getGroundRange();
+        int leftover = distance - range;
         BWAPI::Position direction = (unit.getPosition() - unit.getTarget().getPosition()) * leftover / distance;
 
         if (distance > range)
-            return (unit.getPosition() - direction);
-        return (unit.getPosition());
+           return (unit.getPosition() - direction);
+        else
+           return (unit.getPosition());
     }
 }
