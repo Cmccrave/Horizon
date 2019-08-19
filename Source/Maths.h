@@ -14,15 +14,14 @@ namespace Horizon::Maths {
 
     float survivability(HorizonUnit& unit) {
         float speed, armor, health;
-        speed = (unit.getType().isBuilding()) ? 0.5f : std::max(1.0f, log(unit.getSpeed()));
+        speed = (unit.getType().isBuilding()) ? 0.5f : std::max(0.25f, log(unit.getSpeed()));
         armor = 2.0f + float(unit.getType().armor() + unit.getPlayer()->getUpgradeLevel(unit.getType().armorUpgrade()));
         health = log(((float)unit.getType().maxHitPoints() + (float)unit.getType().maxShields()) / 20.0f);
         return speed * armor * health;
     }
 
     float splashModifier(HorizonUnit& unit) {
-        if (unit.getType() == BWAPI::UnitTypes::Protoss_Archon || unit.getType() == BWAPI::UnitTypes::Terran_Firebat) return 1.25f;
-        if (unit.getType() == BWAPI::UnitTypes::Protoss_Reaver) return 1.25f;
+        if (unit.getType() == BWAPI::UnitTypes::Protoss_Archon || unit.getType() == BWAPI::UnitTypes::Terran_Firebat || unit.getType() == BWAPI::UnitTypes::Protoss_Reaver) return 1.25f;
         if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 6.00f;
         if (unit.getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode) return 2.50f;
         if (unit.getType() == BWAPI::UnitTypes::Terran_Valkyrie || unit.getType() == BWAPI::UnitTypes::Zerg_Mutalisk) return 1.50f;

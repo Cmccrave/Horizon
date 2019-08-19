@@ -25,6 +25,7 @@ namespace Horizon {
         float visAirStrength    = 0.0f;
         float maxGroundStrength = 0.0f;
         float maxAirStrength    = 0.0f;
+        float engageDist        = 0.0f;
         int shields             = 0;
         int health              = 0;
         int energy              = 0;
@@ -42,7 +43,6 @@ namespace Horizon {
         bool hasTarget()                        { return unitsTarget != nullptr; }
         HorizonUnit &getTarget()                { return *unitsTarget; }
 
-        void setTarget(HorizonUnit* t)          { unitsTarget = t; }
         void setEngage(BWAPI::Position p)       { engagePosition = p; }
 
         BWAPI::Unit unit()                      { return thisUnit; }
@@ -62,7 +62,8 @@ namespace Horizon {
         float getGroundDamage()                { return groundDamage; }
         float getAirDamage()                   { return airDamage; }
         float getSpeed()                       { return speed; }
-        int getEnergy()                         { return energy; }
+        float getEngageDist()                  { return engageDist; }
+        int getEnergy()                        { return energy; }
     };
 
     /// Runs a simulation for this Unit and percent change of winning.    
