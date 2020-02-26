@@ -13,16 +13,16 @@ namespace Horizon::Maths {
     }
 
     float survivability(HorizonUnit& unit) {
-        float speed, armor, health;
-        speed = (unit.getType().isBuilding()) ? 0.5f : std::max(0.25f, log(unit.getSpeed()));
-        armor = 2.0f + float(unit.getType().armor() + unit.getPlayer()->getUpgradeLevel(unit.getType().armorUpgrade()));
-        health = log(((float)unit.getType().maxHitPoints() + (float)unit.getType().maxShields()) / 20.0f);
+        const auto avgUnitSpeed = 4.34;
+        const auto speed = log(unit.getSpeed() + avgUnitSpeed);
+        const auto armor = 0.25 + float(unit.getType().armor() + unit.getPlayer()->getUpgradeLevel(unit.getType().armorUpgrade()));
+        const auto health = log(float(unit.getType().maxHitPoints() + unit.getType().maxShields()));
         return speed * armor * health;
     }
 
     float splashModifier(HorizonUnit& unit) {
         if (unit.getType() == BWAPI::UnitTypes::Protoss_Archon || unit.getType() == BWAPI::UnitTypes::Terran_Firebat || unit.getType() == BWAPI::UnitTypes::Protoss_Reaver) return 1.25f;
-        if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 6.00f;
+        if (unit.getType() == BWAPI::UnitTypes::Protoss_High_Templar) return 4.00f;
         if (unit.getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode) return 2.50f;
         if (unit.getType() == BWAPI::UnitTypes::Terran_Valkyrie || unit.getType() == BWAPI::UnitTypes::Zerg_Mutalisk) return 1.50f;
         if (unit.getType() == BWAPI::UnitTypes::Zerg_Lurker) return 2.00f;
@@ -81,14 +81,10 @@ namespace Horizon::Maths {
     }
 
     float groundDPS(HorizonUnit& unit) {
-        float splash, damage, range, cooldown;
-        splash = splashModifier(unit);
-        damage = unit.getGroundDamage();
-        range = log(unit.getGroundRange());
-        cooldown = gWeaponCooldown(unit);
-        if (damage <= 0.0f)
-            return 0.0f;
-        return splash * damage * range / cooldown;
+        const auto splash = splashModifier(unit);
+        const auto damage = unit.getGroundDamage();
+        const auto cooldown = gWeaponCooldown(unit);
+        return damage > 1.0 ? splash * damage / cooldown : 0.0;
     }
 
     float visGroundStrength(HorizonUnit& unit) {
@@ -115,11 +111,11 @@ namespace Horizon::Maths {
             return cnt;
         }
 
-        float dps, surv, eff;
-        dps = groundDPS(unit);
-        surv = log(survivability(unit));
-        eff = effectiveness(unit);
-        return dps * surv * eff;
+        const auto dps = groundDPS(unit);
+        const auto surv = log(survivability(unit));
+        const auto eff = effectiveness(unit);
+        const auto range = log(unit.getGroundRange());
+        return dps * range * surv * eff;
     }
 
     float airDamage(HorizonUnit& unit) {
@@ -154,14 +150,10 @@ namespace Horizon::Maths {
     }
 
     float airDPS(HorizonUnit& unit) {
-        float splash, damage, range, cooldown;
-        splash = splashModifier(unit);
-        damage = unit.getAirDamage();
-        range = log(unit.getAirRange());
-        cooldown = aWeaponCooldown(unit);
-        if (damage <= 0.0f)
-            return 0.0f;
-        return splash * damage * range / cooldown;
+        const auto splash = splashModifier(unit);
+        const auto damage = unit.getAirDamage();
+        const auto cooldown = aWeaponCooldown(unit);
+        return  damage > 1.0 ? splash * damage / cooldown : 0.0;
     }
 
     float visAirStrength(HorizonUnit& unit) {
@@ -185,11 +177,11 @@ namespace Horizon::Maths {
             return cnt;
         }
 
-        float dps, surv, eff;
-        dps = airDPS(unit);
-        surv = log(survivability(unit));
-        eff = effectiveness(unit);
-        return dps * surv * eff;
+        const auto dps = airDPS(unit);
+        const auto surv = log(survivability(unit));
+        const auto eff = effectiveness(unit);
+        const auto range = log(unit.getAirRange());
+        return dps * range * surv * eff;
     }
 
     float speed(HorizonUnit& unit) {

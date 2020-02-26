@@ -7,7 +7,7 @@ namespace Horizon {
         float simulationTime;
         std::map<BWAPI::Unit, HorizonUnit> enemyUnits;
         std::map<BWAPI::Unit, HorizonUnit> myUnits;
-        
+
         void simulate(HorizonOutput& newOutput, HorizonUnit& unit) {
 
             float enemyGrdSim;
@@ -20,8 +20,7 @@ namespace Horizon {
             const auto canAddToSim = [&](HorizonUnit& u) {
                 if (!u.unit()
                     || u.getType().isWorker()
-                    || (!u.unit()->isCompleted() && u.unit()->exists())
-                    || (u.unit()->exists() && (u.unit()->isStasised() || u.unit()->isMorphing()))
+                    || (u.unit()->exists() && (u.unit()->isStasised() || u.unit()->isMorphing() || !u.unit()->isCompleted()))
                     || (u.getVisibleAirStrength() <= 0.0 && u.getVisibleGroundStrength() <= 0.0))
                     return false;
                 return true;
@@ -29,27 +28,25 @@ namespace Horizon {
 
             const auto simEnemies = [&]() {
                 for (auto &e : enemyUnits) {
-                    HorizonUnit &enemy = e.second;
+                    auto &enemy = e.second;
                     if (!canAddToSim(enemy))
                         continue;
 
-                    const auto deadzone = (enemy.getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode && unit.getTarget().getPosition().getDistance(enemy.getPosition()) < 64.0) ? 64.0 : 0.0;
+                    const auto enemyRange = unit.getType().isFlyer() ? enemy.getAirRange() : enemy.getGroundRange();
                     const auto widths = double(enemy.getType().width() + unit.getType().width()) / 2.0;
-                    const auto enemyRange = (unit.getType().isFlyer() ? enemy.getAirRange() : enemy.getGroundRange());
-
-                    // If enemy is stationary, it must be in range of the engage position
-                    if (enemy.getSpeed() <= 0.0) {
-                        auto engageDistance = enemy.getPosition().getDistance(unit.getEngagePosition()) - enemyRange - widths;
-                        if (engageDistance > 64.0)
-                            continue;
-                    }
-
-                    const auto distance = std::max(0.0, enemy.getPosition().getDistance(unit.getPosition()) - enemyRange - widths + deadzone);
+                    const auto distance = std::max(0.0, enemy.getPosition().getDistance(unit.getEngagePosition()) - enemyRange - widths);
                     const auto speed = enemy.getSpeed() > 0.0 ? 24.0 * enemy.getSpeed() : 24.0 * unit.getSpeed();
-                    const auto simRatio =  simulationTime - (distance / speed);
+                    auto simRatio = simulationTime - (distance / speed);
 
-                    if (simRatio <= 0.0)
+                    // If the unit doesn't affect this simulation
+                    if (simRatio <= 0.0
+                        || (enemy.getSpeed() <= 0.0 && distance > 0.0)
+                        || (enemy.getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode && (enemy.getPosition().getDistance(unit.getPosition()) - widths) < 64.0))
                         continue;
+
+                    // High ground bonus
+                    if (!enemy.getType().isFlyer() && BWAPI::Broodwar->getGroundHeight(enemy.getTilePosition()) > BWAPI::Broodwar->getGroundHeight(BWAPI::TilePosition(unit.getEngagePosition())))
+                        simRatio = simRatio * 2.0;
 
                     // Add their values to the simulation
                     enemyGrdSim += enemy.getVisibleGroundStrength() * simRatio;
@@ -59,31 +56,36 @@ namespace Horizon {
 
             const auto simSelf = [&]() {
                 for (auto &a : myUnits) {
-                    HorizonUnit &ally = a.second;
+                    auto &ally = a.second;
                     if (!canAddToSim(ally))
                         continue;
 
-                    const auto deadzone = (ally.getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode && unit.getTarget().getPosition().getDistance(ally.getPosition()) < 64.0) ? 64.0 : 0.0;
-                    const auto engDist = ally.getEngageDist();
                     const auto widths = double(ally.getType().width() + ally.getTarget().getType().width()) / 2.0;
-                    const auto allyRange = (unit.getTarget().getType().isFlyer() ? ally.getAirRange() : ally.getGroundRange());
+                    const auto distance = std::max(0.0, ally.getEngageDist() - widths);
                     const auto speed = 24.0 * ally.getSpeed();
-                    const auto distance = std::max(0.0, engDist - widths + deadzone);
-                    const auto simRatio = simulationTime - (distance / speed);
+                    auto simRatio = simulationTime - (distance / speed);
 
                     // If the unit doesn't affect this simulation
-                    if (simRatio <= 0.0 || (ally.getSpeed() <= 0.0 && ally.getPosition().getDistance(unit.getTarget().getPosition()) - allyRange - widths > 64.0))
+                    if (simRatio <= 0.0
+                        || (ally.getSpeed() <= 0.0 && distance > 0.0)
+                        || (ally.getPosition().getDistance(unit.getTarget().getPosition()) / speed) > simulationTime
+                        || (ally.getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode && unit.getTarget().getPosition().getDistance(ally.getPosition()) < 64.0))
                         continue;
-
-                    if (!sync && simRatio > 0.0 && ((unit.getType().isFlyer() && !ally.getType().isFlyer()) || (!unit.getType().isFlyer() && ally.getType().isFlyer())))
-                        sync = true;
+                    
+                    // High ground bonus
+                    if (!ally.getType().isFlyer() && BWAPI::Broodwar->getGroundHeight(BWAPI::TilePosition(ally.getEngagePosition())) > BWAPI::Broodwar->getGroundHeight(TilePosition(ally.getTarget().getPosition())))
+                        simRatio = simRatio * 2.0;                    
 
                     // Add their values to the simulation
                     myGrdSim += ally.getVisibleGroundStrength() * simRatio;
                     myAirSim += ally.getVisibleAirStrength() * simRatio;
+
+                    // Check if air/ground sim needs to sync
+                    if (!sync && simRatio > 0.0 && ((unit.getType().isFlyer() && !ally.getType().isFlyer()) || (!unit.getType().isFlyer() && ally.getType().isFlyer())))
+                        sync = true;
                 }
             };
-                        
+
             simEnemies();
             simSelf();
 
@@ -116,7 +118,7 @@ namespace Horizon {
         auto &u = unit->getPlayer() == BWAPI::Broodwar->self() ? myUnits[unit] : enemyUnits[unit];
         Maths::adjustSizes(unit);
         u.update(unit, target);
-                
+
     }
 
     void removeUnit(BWAPI::Unit unit)
